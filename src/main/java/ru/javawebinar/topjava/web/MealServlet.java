@@ -1,90 +1,96 @@
 package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ru.javawebinar.topjava.model.UserMeal;
 import ru.javawebinar.topjava.model.UserMealWithExceed;
-import ru.javawebinar.topjava.util.UserMealsUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Month;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.slf4j.LoggerFactory.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class MealServlet extends HttpServlet {
 
-    private static List<UserMealWithExceed> userMealWithExceeds = null;
-
-    private static final Logger LOG = getLogger(MealServlet.class);
-
-    static {
-        List<UserMeal> mealList = Arrays.asList(
-                new UserMeal(LocalDateTime.of(2015, Month.MAY, 30, 10, 0), "Завтрак", 500),
-                new UserMeal(LocalDateTime.of(2015, Month.MAY, 30, 13, 0), "Обед", 1000),
-                new UserMeal(LocalDateTime.of(2015, Month.MAY, 30, 20, 0), "Ужин", 500),
-                new UserMeal(LocalDateTime.of(2015, Month.MAY, 31, 10, 0), "Завтрак", 1000),
-                new UserMeal(LocalDateTime.of(2015, Month.MAY, 31, 13, 0), "Обед", 500),
-                new UserMeal(LocalDateTime.of(2015, Month.MAY, 31, 20, 0), "Ужин", 510)
-        );
-
-        userMealWithExceeds = UserMealsUtil.getFilteredMealsWithExceeded(mealList, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
-    }
+    private static List<UserMealWithExceed> userMealWithExceeds = new ArrayList<>();
 
     public static List<UserMealWithExceed> getUserMealWithExceeds() {
         return userMealWithExceeds;
     }
 
+    private static final Logger LOG = getLogger(MealServlet.class);
+
+    //TODO Работа с GET запросами HTTP
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        LOG.debug("on doGet method");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-        response.setContentType("text/html; charset=utf-8");
+        LOG.debug("on doGet() method");
 
-        PrintWriter out = response.getWriter();
+        request.setAttribute("userMealWithExceeds", getUserMealWithExceeds());
+        request.getRequestDispatcher("/mealList.jsp").forward(request, response);
 
-        out.println("<html>");
-        out.println("<body>");
-        out.println("<table border=1 align=center>");
-
-        for (UserMealWithExceed userMeal : getUserMealWithExceeds()) {
-
-            out.println("<tr>");
-
-            if (userMeal.isExceed()) {
-
-                out.println("<td bgcolor=red>" + userMeal.getDateTime() + "</td>");
-                out.println("<td bgcolor=red>" + userMeal.getDescription() + "</td>");
-                out.println("<td bgcolor=red>" + userMeal.getCalories() + "</td>");
-
-            } else {
-
-                out.println("<td>" + userMeal.getDateTime() + "</td>");
-                out.println("<td>" + userMeal.getDescription() + "</td>");
-                out.println("<td>" + userMeal.getCalories() + "</td>");
-
-            }
-
-            out.println("</tr>");
-
-        }
-
-        out.println("</table>");
-        out.println("</body>");
-        out.println("</html>");
-        out.flush();
     }
 
+    //TODO Работа с POST запросами HTTP
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        //TODO implement tomorrow
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        LOG.debug("on doPost() method");
+
+        switch (request.getParameter("action").toLowerCase()) {
+            //TODO Добавление
+            case "add":
+                userMealWithExceeds.add(new UserMealWithExceed(LocalDateTime.parse(request.getParameter("Date")),
+                        request.getParameter("Description"), Integer.parseInt(request.getParameter("Calories"))));
+                LOG.debug("Added new object: " + userMealWithExceeds);
+                break;
+            //TODO Удаление
+            case "delete":
+                UserMealWithExceed deleteUserMeal = null;
+                for (UserMealWithExceed userMeal : getUserMealWithExceeds()) {
+                    if (userMeal.getDateTime().toString().equals(request.getParameter("Date"))) {
+                        LOG.debug("Object for delete: " + userMeal);
+                        deleteUserMeal = userMeal;
+                    }
+                }
+                userMealWithExceeds.remove(deleteUserMeal);
+                LOG.debug("After delete: " + userMealWithExceeds);
+                break;
+            //TODO Редактирование
+            case "edit":
+                UserMealWithExceed editUserMeal = null;
+                int index = 0;
+                for (UserMealWithExceed userMeal : getUserMealWithExceeds()) {
+                    if (userMeal.getDateTime().toString().equals(request.getParameter("Date"))) {
+                        index = userMealWithExceeds.indexOf(userMeal);
+                        LOG.debug("Index of object for edit: " + index);
+                        editUserMeal = new UserMealWithExceed(LocalDateTime.parse(request.getParameter("Date")), request.getParameter("Description"), Integer.parseInt(request.getParameter("Calories")));
+                    }
+                }
+                userMealWithExceeds.set(index, editUserMeal);
+                LOG.debug("After edit: " + userMealWithExceeds);
+                break;
+            //TODO Поиск
+            case "search":
+                UserMealWithExceed searchUserMeal = null;
+                for (UserMealWithExceed userMeal : getUserMealWithExceeds()) {
+                    if (userMeal.getDateTime().toString().equals(request.getParameter("Date"))) {
+                        LOG.debug("Searched object: " + userMeal);
+                        searchUserMeal = userMeal;
+                    }
+                }
+                request.setAttribute("searchUserMeal", searchUserMeal);
+                break;
+        }
+
+        LOG.debug("User meal list: " + userMealWithExceeds);
+
+        doGet(request, response);
     }
 }
