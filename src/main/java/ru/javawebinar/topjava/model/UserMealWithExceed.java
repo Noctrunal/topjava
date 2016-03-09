@@ -1,19 +1,32 @@
 package ru.javawebinar.topjava.model;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * GKislin
  * 11.01.2015.
  */
 public class UserMealWithExceed {
-    protected LocalDateTime dateTime;
+    protected Integer id;
 
-    protected String description;
+    protected final LocalDateTime dateTime;
 
-    protected int calories;
+    protected final String description;
 
-    protected boolean exceed;
+    protected final int calories;
+
+    protected final boolean exceed;
+
+    protected String dateTimeFormat;
+
+    public UserMealWithExceed(Integer id, LocalDateTime dateTime, String description, int calories, boolean exceed) {
+        this.id = id;
+        this.dateTime = dateTime;
+        this.description = description;
+        this.calories = calories;
+        this.exceed = exceed;
+    }
 
     public UserMealWithExceed(LocalDateTime dateTime, String description, int calories, boolean exceed) {
         this.dateTime = dateTime;
@@ -22,10 +35,17 @@ public class UserMealWithExceed {
         this.exceed = exceed;
     }
 
-    public UserMealWithExceed(LocalDateTime dateTime, String description, int calories) {
-        this.dateTime = dateTime;
-        this.description = description;
-        this.calories = calories;
+    public String getDateTimeFormat() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy' 'HH:mm:ss");
+        return dateTimeFormat = dateTime.format(formatter);
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public LocalDateTime getDateTime() {

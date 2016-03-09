@@ -1,96 +1,116 @@
 package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
-import ru.javawebinar.topjava.model.UserMealWithExceed;
+import ru.javawebinar.topjava.dao.UserMealsDAO;
+import ru.javawebinar.topjava.dao.impl.UserMealsDAOImpl;
+import ru.javawebinar.topjava.model.UserMeal;
+import ru.javawebinar.topjava.util.UserMealsUtil;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class MealServlet extends HttpServlet {
-
-    private static List<UserMealWithExceed> userMealWithExceeds = new ArrayList<>();
-
-    public static List<UserMealWithExceed> getUserMealWithExceeds() {
-        return userMealWithExceeds;
-    }
-
     private static final Logger LOG = getLogger(MealServlet.class);
+
+    public static final String LIST_OF_MEALS = "/mealList.jsp";
+
+    public static final String INSERT_OR_EDIT = "/formList.jsp";
+
+    private UserMealsDAO userMealsDAO;
+
+    public MealServlet() {
+        userMealsDAO = new UserMealsDAOImpl();
+        LOG.info("Initializing Meal Servlet with DAO class");
+    }
 
     //TODO Работа с GET запросами HTTP
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        LOG.info("in doGet() method body");
 
-        LOG.debug("on doGet() method");
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
 
-        request.setAttribute("userMealWithExceeds", getUserMealWithExceeds());
-        request.getRequestDispatcher("/mealList.jsp").forward(request, response);
-
+        if (request.getParameter("action") != null) {
+            String action = request.getParameter("action").toLowerCase();
+            String forward = "";
+            switch (action) {
+                case "edit": {
+                    forward = INSERT_OR_EDIT;
+                    int id = Integer.parseInt(request.getParameter("id"));
+                    UserMeal userMeal = userMealsDAO.getUserMeal(id);
+                    request.setAttribute("userMeal", userMeal);
+                    LOG.debug("User Meal for edit: " + userMeal);
+                    break;
+                }
+                case "add":
+                    forward = INSERT_OR_EDIT;
+                    break;
+                case "delete": {
+                    forward = LIST_OF_MEALS;
+                    int id = Integer.parseInt(request.getParameter("id"));
+                    UserMeal deleteUserMeal = userMealsDAO.getUserMeal(id);
+                    userMealsDAO.removeUserMeal(deleteUserMeal.getId());
+                    request.setAttribute("userMealWithExceeds",
+                            UserMealsUtil.getUserMealsWithExceeds(userMealsDAO.getAllUserMeals(), UserMealsUtil.CALORIES_PER_DAY));
+                    LOG.debug("User Meal for remove: " + deleteUserMeal);
+                    LOG.info("After removing user meal: " + userMealsDAO.getAllUserMeals());
+                    break;
+                }
+                default:
+                    forward = LIST_OF_MEALS;
+                    request.setAttribute("userMealWithExceeds",
+                            UserMealsUtil.getUserMealsWithExceeds(userMealsDAO.getAllUserMeals(), UserMealsUtil.CALORIES_PER_DAY));
+                    break;
+            }
+            RequestDispatcher view = request.getRequestDispatcher(forward);
+            view.forward(request, response);
+        } else {
+            RequestDispatcher view = request.getRequestDispatcher(LIST_OF_MEALS);
+            view.forward(request, response);
+        }
     }
 
     //TODO Работа с POST запросами HTTP
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        LOG.info("in doPost() method body");
 
-        LOG.debug("on doPost() method");
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
 
-        switch (request.getParameter("action").toLowerCase()) {
-            //TODO Добавление
-            case "add":
-                userMealWithExceeds.add(new UserMealWithExceed(LocalDateTime.parse(request.getParameter("Date")),
-                        request.getParameter("Description"), Integer.parseInt(request.getParameter("Calories"))));
-                LOG.debug("Added new object: " + userMealWithExceeds);
-                break;
-            //TODO Удаление
-            case "delete":
-                UserMealWithExceed deleteUserMeal = null;
-                for (UserMealWithExceed userMeal : getUserMealWithExceeds()) {
-                    if (userMeal.getDateTime().toString().equals(request.getParameter("Date"))) {
-                        LOG.debug("Object for delete: " + userMeal);
-                        deleteUserMeal = userMeal;
-                    }
-                }
-                userMealWithExceeds.remove(deleteUserMeal);
-                LOG.debug("After delete: " + userMealWithExceeds);
-                break;
-            //TODO Редактирование
-            case "edit":
-                UserMealWithExceed editUserMeal = null;
-                int index = 0;
-                for (UserMealWithExceed userMeal : getUserMealWithExceeds()) {
-                    if (userMeal.getDateTime().toString().equals(request.getParameter("Date"))) {
-                        index = userMealWithExceeds.indexOf(userMeal);
-                        LOG.debug("Index of object for edit: " + index);
-                        editUserMeal = new UserMealWithExceed(LocalDateTime.parse(request.getParameter("Date")), request.getParameter("Description"), Integer.parseInt(request.getParameter("Calories")));
-                    }
-                }
-                userMealWithExceeds.set(index, editUserMeal);
-                LOG.debug("After edit: " + userMealWithExceeds);
-                break;
-            //TODO Поиск
-            case "search":
-                UserMealWithExceed searchUserMeal = null;
-                for (UserMealWithExceed userMeal : getUserMealWithExceeds()) {
-                    if (userMeal.getDateTime().toString().equals(request.getParameter("Date"))) {
-                        LOG.debug("Searched object: " + userMeal);
-                        searchUserMeal = userMeal;
-                    }
-                }
-                request.setAttribute("searchUserMeal", searchUserMeal);
-                break;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy' 'HH:mm:ss");
+        UserMeal newUserMeal = new UserMeal(LocalDateTime.parse(request.getParameter("date"), formatter),
+                request.getParameter("description"),
+                Integer.parseInt(request.getParameter("calories")));
+        String id = request.getParameter("id");
+
+        if (id == null || id.isEmpty()) {
+            userMealsDAO.saveUserMeal(newUserMeal);
+            LOG.debug("Saving User Meal: " + newUserMeal);
+        } else {
+            newUserMeal.setId(Integer.parseInt(id));
+            userMealsDAO.editUserMeal(newUserMeal.getId(), newUserMeal);
+            LOG.debug("Editing User Meal: " + newUserMeal);
         }
 
-        LOG.debug("User meal list: " + userMealWithExceeds);
+        RequestDispatcher view = request.getRequestDispatcher(LIST_OF_MEALS);
+        request.setAttribute("userMealWithExceeds",
+                UserMealsUtil.getUserMealsWithExceeds(userMealsDAO.getAllUserMeals(), UserMealsUtil.CALORIES_PER_DAY));
+        view.forward(request, response);
 
-        doGet(request, response);
+        LOG.info("After saving or editing: " + userMealsDAO.getAllUserMeals());
     }
 }

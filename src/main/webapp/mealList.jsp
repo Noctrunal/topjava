@@ -1,52 +1,43 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
 <head>
-    <title>Calories List</title>
+    <title>Подсчет калорий</title>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
 </head>
 <body>
-<!-- Форма для заполнения данных о калориях -->
-<form name="postData" method="post" >
-    <table align="center" border="1px">
-        <tr>
-            <td>Date</td>
-            <td><input type="text" name="Date" value="${searchUserMeal.dateTime}"/></td>
-        </tr>
-
-        <tr>
-            <td>Description</td>
-            <td><input type="text" name="Description" value="${searchUserMeal.description}"/></td>
-        </tr>
-
-        <tr>
-            <td>Calories</td>
-            <td><input type="text" name="Calories" value="${searchUserMeal.calories}"/></td>
-        </tr>
-    </table>
-    <div align="center">
-        <input type="submit" name="action" value="Add" />
-        <input type="submit" name="action" value="Delete" />
-        <input type="submit" name="action" value="Edit" />
-        <input type="submit" name="action" value="Search" />
-    </div>
-</form>
 <!-- Таблица для отображения данных о калориях -->
+<h1 align="center">Список еды</h1>
 <form name="getData" method="get" >
     <table align="center" border="1px" >
         <tr>
             <th>Date</th>
             <th>Description</th>
             <th>Calories</th>
+            <th>Actions</th>
         </tr>
 
         <c:forEach var="userMeal" items="${userMealWithExceeds}">
             <tr>
-                <td>${userMeal.dateTime}</td>
-                <td>${userMeal.description}</td>
-                <td>${userMeal.calories}</td>
+                <c:if test="${userMeal.exceed}" >
+                <td style="color: red"><c:out value="${userMeal.dateTimeFormat}" /></td>
+                <td style="color: red"><c:out value="${userMeal.description}"/></td>
+                <td style="color: red"><c:out value="${userMeal.calories}"/></td>
+                </c:if>
+                <c:if test="${!userMeal.exceed}" >
+                <td style="color: green"><c:out value="${userMeal.dateTimeFormat}" /></td>
+                <td style="color: green"><c:out value="${userMeal.description}" /></td>
+                <td style="color: green"><c:out value="${userMeal.calories}" /></td>
+                </c:if>
+                <td><a href="meals?action=edit&id=<c:out value="${userMeal.id}" />" >Edit</a>
+                    <a href="meals?action=delete&id=<c:out value="${userMeal.id}" />" >Delete</a>
+                </td>
             </tr>
         </c:forEach>
     </table>
+    <div align="center" >
+    <p><a href="meals?action=add">Добавить еду</a> </p>
+    </div>
 </form>
 </body>
 </html>
