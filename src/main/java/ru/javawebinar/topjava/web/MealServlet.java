@@ -2,11 +2,8 @@ package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import ru.javawebinar.topjava.LoggedUser;
 import ru.javawebinar.topjava.model.UserMeal;
-import ru.javawebinar.topjava.util.UserMealsUtil;
 import ru.javawebinar.topjava.web.meal.UserMealRestController;
 
 import javax.servlet.ServletConfig;
@@ -15,7 +12,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 /**
@@ -43,7 +43,7 @@ public class MealServlet extends HttpServlet {
                 request.getParameter("description"),
                 Integer.valueOf(request.getParameter("calories")));
         LOG.info(userMeal.isNew() ? "Create {}" : "Update {}", userMeal);
-        controller.save(userMeal, LoggedUser.id());
+        controller.save(userMeal);
         response.sendRedirect("meals");
     }
 
@@ -53,17 +53,33 @@ public class MealServlet extends HttpServlet {
         if (action == null) {
             LOG.info("getAll");
             request.setAttribute("mealList",
-                    UserMealsUtil.getWithExceeded(controller.getAll(LoggedUser.id()), UserMealsUtil.DEFAULT_CALORIES_PER_DAY));
+                    controller.getAll());
             request.getRequestDispatcher("/mealList.jsp").forward(request, response);
         } else if (action.equals("delete")) {
             int id = getId(request);
             LOG.info("Delete {}", id);
-            controller.delete(id, LoggedUser.id());
+            controller.delete(id);
             response.sendRedirect("meals");
+        } else if (action.equals("filter")) {
+            DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
+            DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd' 'HH:mm");
+            String fromDate = request.getParameter("fromDate");
+            String toDate = request.getParameter("toDate");
+            String fromTime = request.getParameter("fromTime");
+            String toTime = request.getParameter("toTime");
+            request.setAttribute("mealList", !fromDate.equals("") && !toDate.equals("") && fromTime.equals("") && toTime.equals("") ?
+            controller.getAllFilteredByDate(LocalDate.parse(fromDate, dateFormat), LocalDate.parse(toDate, dateFormat)):
+            !fromTime.equals("") && !toTime.equals("") && fromDate.equals("") && toDate.equals("") ? controller.getAllFilteredByTime(LocalTime.parse(fromTime, timeFormat), LocalTime.parse(toTime, timeFormat)):
+                    controller.getAllFilteredByDateTime(LocalDateTime.parse(fromDate + " " + fromTime, dateTimeFormat), LocalDateTime.parse(toDate + " " + toTime, dateTimeFormat)));
+            LOG.info(!fromDate.equals("") && !toDate.equals("") && fromTime.equals("") && toTime.equals("") ?
+            "getAllFilteredByDate" : !fromTime.equals("") && !toTime.equals("") && fromDate.equals("") && toDate.equals("") ?
+            "getAllFilteredByTime" : "getAllFilteredByDateTime");
+            request.getRequestDispatcher("/mealList.jsp").forward(request, response);
         } else {
             final UserMeal meal = action.equals("create") ?
                     new UserMeal(LocalDateTime.now(), "", 1000) :
-                    controller.get(getId(request), LoggedUser.id());
+                    controller.get(getId(request));
             request.setAttribute("meal", meal);
             request.getRequestDispatcher("mealEdit.jsp").forward(request, response);
         }

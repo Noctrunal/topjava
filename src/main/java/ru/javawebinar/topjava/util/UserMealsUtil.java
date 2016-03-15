@@ -50,6 +50,26 @@ public class UserMealsUtil {
                 .collect(Collectors.toList());
     }
 
+    public static List<UserMealWithExceed> getFilteredWithExceededByDate(Collection<UserMeal> mealList, LocalDate start, LocalDate end, int caloriesPerDay) {
+        return mealList.stream().filter(um -> TimeUtil.isBetweenDate(um.getDateTime().toLocalDate(), start, end))
+                .map(um -> createWithExceed(um, mealList.stream()
+                        .collect(
+                                Collectors.groupingBy(uml -> uml.getDateTime().toLocalDate(),
+                                        Collectors.summingInt(UserMeal::getCalories))
+                        ).get(um.getDateTime().toLocalDate()) > caloriesPerDay)
+                ).collect(Collectors.toList());
+    }
+
+    public static List<UserMealWithExceed> getFilteredWithExceededByDateTime(Collection<UserMeal> mealList, LocalDateTime start, LocalDateTime end, int caloriesPerDay) {
+        return mealList.stream().filter(um -> TimeUtil.isBetweenDateTime(um.getDateTime(), start, end))
+                .map(um -> createWithExceed(um, mealList.stream()
+                        .collect(
+                                Collectors.groupingBy(UserMeal::getDateTime,
+                                        Collectors.summingInt(UserMeal::getCalories))
+                        ).get(um.getDateTime()) > caloriesPerDay)
+                ).collect(Collectors.toList());
+    }
+
     public static List<UserMealWithExceed> getFilteredWithExceededByCycle(List<UserMeal> mealList, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
 
         final Map<LocalDate, Integer> caloriesSumPerDate = new HashMap<>();

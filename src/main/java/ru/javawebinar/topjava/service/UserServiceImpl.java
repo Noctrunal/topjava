@@ -18,7 +18,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    @Qualifier(value = "mockUserRepositoryImpl")
+    @Qualifier(value = "inMemoryUserRepositoryImpl")
     private UserRepository repository;
 
     public User save(User user) {
