@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 @Repository
 public class InMemoryUserMealRepositoryImpl implements UserMealRepository {
     private Map<Integer, Map<Integer, UserMeal>> repository = new ConcurrentHashMap<>();
-    private Map<Integer, UserMeal> mealMap = new ConcurrentHashMap<>();
     private AtomicInteger counter = new AtomicInteger(0);
 
     {
@@ -35,8 +34,7 @@ public class InMemoryUserMealRepositoryImpl implements UserMealRepository {
         if (userMeal.isNew()) {
             userMeal.setId(counter.incrementAndGet());
         }
-        mealMap.put(userMeal.getId(), userMeal);
-        repository.put(userId, mealMap);
+        repository.computeIfAbsent(userId, ConcurrentHashMap::new).put(userMeal.getId(), userMeal);
         return userMeal;
     }
 
