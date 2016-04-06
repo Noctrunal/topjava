@@ -9,6 +9,8 @@ import ru.javawebinar.topjava.repository.UserMealRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -62,5 +64,15 @@ public class DataJpaUserMealRepositoryImpl implements UserMealRepository {
     public List<UserMeal> getBetween(LocalDateTime startDate, LocalDateTime endDate, int userId) {
         LOG.info("Find all UserMeals between startDate = {} and endDate = {} user_id = {}", startDate, endDate, userId);
         return proxyUserMealRepository.findAllBetween(startDate, endDate, userId);
+    }
+
+    @Override
+    public Map<UserMeal, User> findWithOwner(int id) {
+        Map<UserMeal, User> findMap = new ConcurrentHashMap<>();
+        UserMeal userMeal = proxyUserMealRepository.findOne(id);
+        User user = userMeal.getUser();
+        findMap.putIfAbsent(userMeal, user);
+        LOG.info("Find UserMeal id = {} with User = {}", id, user);
+        return findMap;
     }
 }

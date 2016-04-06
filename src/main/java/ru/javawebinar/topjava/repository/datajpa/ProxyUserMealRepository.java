@@ -34,4 +34,7 @@ public interface ProxyUserMealRepository extends JpaRepository<UserMeal, Integer
 
     @Query(name = UserMeal.GET_BETWEEN)
     List<UserMeal> findAllBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("userId") int userId);
+
+    @Override
+    UserMeal findOne(Integer id);
 }

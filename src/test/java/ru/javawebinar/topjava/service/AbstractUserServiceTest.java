@@ -12,13 +12,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import ru.javawebinar.topjava.UserTestData;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
+import ru.javawebinar.topjava.model.UserMeal;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
+import static org.junit.Assert.assertArrayEquals;
+import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.*;
+import static ru.javawebinar.topjava.UserTestData.MATCHER;
 
 @ContextConfiguration({
         "classpath:spring/spring-app.xml",
@@ -90,5 +92,14 @@ public abstract class AbstractUserServiceTest {
         updated.setCaloriesPerDay(330);
         service.update(updated.asUser());
         MATCHER.assertEquals(updated, service.get(USER_ID));
+    }
+
+    @Test
+    public void testFindWithMeals() throws Exception {
+        for (Map.Entry<User, List<UserMeal>> entry : service.findWithMeals(USER_ID).entrySet()) {
+            MATCHER.assertEquals(USER, entry.getKey());
+            Object[] meals = entry.getValue().toArray();
+            assertArrayEquals(meals, Arrays.asList(MEAL6, MEAL5, MEAL4, MEAL3, MEAL2, MEAL1).toArray());
+        }
     }
 }

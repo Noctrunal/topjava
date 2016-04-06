@@ -1,8 +1,10 @@
 package ru.javawebinar.topjava.repository;
 
 import ru.javawebinar.topjava.model.User;
+import ru.javawebinar.topjava.model.UserMeal;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: gkislin
@@ -21,4 +23,8 @@ public interface UserRepository {
     User getByEmail(String email);
 
     List<User> getAll();
+
+    default Map<User, List<UserMeal>> findWithMeals(int id) {
+        throw new UnsupportedOperationException();
+    }
 }
