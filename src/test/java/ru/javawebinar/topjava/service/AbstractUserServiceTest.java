@@ -7,13 +7,13 @@ import org.springframework.dao.DataAccessException;
 import ru.javawebinar.topjava.UserTestData.*;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
-import ru.javawebinar.topjava.repository.JpaUtil;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import static org.junit.Assert.assertEquals;
 import static ru.javawebinar.topjava.UserTestData.*;
 
 abstract public class AbstractUserServiceTest extends AbstractServiceTest {
@@ -21,13 +21,13 @@ abstract public class AbstractUserServiceTest extends AbstractServiceTest {
     @Autowired
     protected UserService service;
 
-    @Autowired
-    protected JpaUtil jpaUtil;
+//    @Autowired
+//    protected JpaUtil jpaUtil;
 
     @Before
     public void setUp() throws Exception {
         service.evictCache();
-        jpaUtil.clear2ndLevelHibernateCache();
+//        jpaUtil.clear2ndLevelHibernateCache();
     }
 
     @Test
@@ -84,5 +84,13 @@ abstract public class AbstractUserServiceTest extends AbstractServiceTest {
         updated.setCaloriesPerDay(330);
         service.update(updated.asUser());
         MATCHER.assertEquals(updated, service.get(USER_ID));
+    }
+
+    @Test
+    public void testRoles() throws Exception {
+        User admin = service.get(ADMIN_ID);
+        User user = service.get(USER_ID);
+        assertEquals(ADMIN.getRoles(), admin.getRoles());
+        assertEquals(USER.getRoles(), user.getRoles());
     }
 }

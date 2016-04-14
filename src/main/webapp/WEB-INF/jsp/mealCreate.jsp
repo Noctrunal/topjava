@@ -4,16 +4,16 @@
 
 <html>
 <head>
-    <title><fmt:message key="app.meals.edit"/></title>
+    <title><fmt:message key="app.meals.create"/></title>
     <link rel="stylesheet" href="/topjava/resources/css/style.css">
 </head>
 <body>
 <section>
     <h2><a href="/topjava/index"><fmt:message key="app.meals.home"/> </a></h2>
-    <h3><fmt:message key="app.meals.edit"/></h3>
+    <h3><fmt:message key="app.meals.create"/></h3>
     <hr>
     <jsp:useBean id="meal" type="ru.javawebinar.topjava.model.UserMeal" scope="request"/>
-    <form method="post" action="update">
+    <form method="post" action="create">
         <input type="hidden" name="id" value="${meal.id}">
         <dl>
             <dt><fmt:message key="app.meals.form.datetime"/></dt>
