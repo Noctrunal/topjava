@@ -1,3 +1,6 @@
+const USERS = 'ajax/admin/users/';
+const MEALS = 'ajax/profile/meals/';
+
 function makeEditable() {
     $('#add').click(function () {
         $('#id').val(0);
@@ -5,12 +8,23 @@ function makeEditable() {
     });
 
     $('.delete').click(function () {
-        deleteRow($(this).attr("id"));
+        deleteRow($(this).closest('tr').attr('id'));
     });
 
     $('#detailsForm').submit(function () {
         save();
         return false;
+    });
+    
+    $('#filter').submit(function () {
+        updateMealsTable();
+        return false;
+    });
+
+    $('.checkbox').change(function () {
+        var checkbox = $(this);
+        var id = $(this).closest('tr').attr('id');
+        enabled(checkbox, id);
     });
 
     $(document).ajaxError(function (event, jqXHR, options, jsExc) {
@@ -18,24 +32,59 @@ function makeEditable() {
     });
 }
 
+function enabled(checkbox, id) {
+    var enabled = checkbox.is(":checked");
+    checkbox.closest('tr').css("text-decoration", enabled ? "none" : "line-through");
+    debugger;
+    $.ajax({
+        url: ajaxUrl + id,
+        type: 'POST',
+        data: 'enabled=' + enabled,
+        success: function () {
+            successNoty(enabled ? 'Enabled' : 'Disabled');
+        }
+    });
+}
+
+function updateTableByData(data) {
+    datatableApi.fnClearTable();
+    datatableApi.fnAddData(data);
+    datatableApi.fnDraw();
+}
+
+function updateUsersTable() {
+    debugger;
+    $.get(ajaxUrl, function(data) {
+        updateTableByData(data);
+    })
+}
+
+function updateMealsTable() {
+    debugger;
+    $.ajax({
+        type: "POST",
+        url: ajaxUrl + 'filter',
+        data: $('#filter').serialize(),
+        success: function (data) {
+            updateTableByData(data);
+            successNoty('Filtered')
+        }
+    });
+    return false;
+}
+
 function deleteRow(id) {
     $.ajax({
         url: ajaxUrl + id,
         type: 'DELETE',
         success: function () {
-            updateTable();
+            if (ajaxUrl === USERS) {
+                updateUsersTable();
+            } else if (ajaxUrl === MEALS) {
+                updateMealsTable();
+            }
             successNoty('Deleted');
         }
-    });
-}
-
-function updateTable() {
-    $.get(ajaxUrl, function (data) {
-        datatableApi.fnClearTable();
-        $.each(data, function (key, item) {
-            datatableApi.fnAddData(item);
-        });
-        datatableApi.fnDraw();
     });
 }
 
@@ -48,7 +97,11 @@ function save() {
         data: form.serialize(),
         success: function () {
             $('#editRow').modal('hide');
-            updateTable();
+            if (ajaxUrl === USERS) {
+                updateUsersTable();
+            } else if (ajaxUrl === MEALS) {
+                updateMealsTable();
+            }
             successNoty('Saved');
         }
     });
