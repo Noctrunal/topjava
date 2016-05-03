@@ -1,7 +1,9 @@
 package ru.javawebinar.topjava.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
+import ru.javawebinar.topjava.util.TimeUtil;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -32,6 +34,7 @@ public class UserMeal extends BaseEntity {
 
     @Column(name = "date_time", nullable = false)
     @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = TimeUtil.DATE_TIME_PATTERN)
     private LocalDateTime dateTime;
 
     @Column(name = "description", nullable = false)

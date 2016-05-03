@@ -1,6 +1,8 @@
 package ru.javawebinar.topjava.to;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import ru.javawebinar.topjava.util.TimeUtil;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +13,7 @@ import java.time.LocalDateTime;
 public class UserMealWithExceed {
     protected final Integer id;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = TimeUtil.DATE_TIME_PATTERN)
     private final LocalDateTime dateTime;
 
     private final String description;
