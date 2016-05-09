@@ -1,4 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <li class="dropdown">
     <a href="#" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="current.lang" /><b class="caret"></b></a>
     <ul class="dropdown-menu">
