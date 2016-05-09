@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
@@ -31,6 +32,16 @@ public class GlobalControllerExceptionHandler {
         if (loggedUser != null) {
             mav.addObject("userTo", loggedUser.getUserTo());
         }
+        return mav;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @Order(Ordered.LOWEST_PRECEDENCE)
+    ModelAndView duplicateEmailErrorHandler(HttpServletRequest req) throws DataIntegrityViolationException {
+        DataIntegrityViolationException e = new DataIntegrityViolationException("User with this email already present in application.");
+        LOG.error("DataIntegrityViolationException at request " + req.getRequestURL(), e);
+        ModelAndView mav = new ModelAndView("exception/exception");
+        mav.addObject("exception", e);
         return mav;
     }
 }

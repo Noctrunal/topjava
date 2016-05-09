@@ -13,6 +13,7 @@ import ru.javawebinar.topjava.util.exception.ErrorInfo;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.ValidationException;
 
 /**
  * User: gkislin
@@ -33,7 +34,10 @@ public interface ExceptionInfoHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseBody
     @Order(Ordered.HIGHEST_PRECEDENCE + 1)
-    default ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e) {
+    default ErrorInfo conflict(HttpServletRequest req) {
+        String[] partsOfUrl = req.getRequestURI().split("/");
+        int index =  partsOfUrl.length - 1;
+        DataIntegrityViolationException e = new DataIntegrityViolationException(partsOfUrl[index].equals("users") ? "User with this email already present in application." : "dateTime must be unique");
         return logAndGetErrorInfo(req, e);
     }
 
@@ -42,6 +46,14 @@ public interface ExceptionInfoHandler {
     @ResponseBody
     @Order(Ordered.LOWEST_PRECEDENCE)
     default ErrorInfo handleError(HttpServletRequest req, Exception e) {
+        return logAndGetErrorInfo(req, e);
+    }
+
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)  //422
+    @ExceptionHandler(ValidationException.class)
+    @ResponseBody
+    @Order(Ordered.LOWEST_PRECEDENCE)
+    default ErrorInfo validationError(HttpServletRequest req, ValidationException e) {
         return logAndGetErrorInfo(req, e);
     }
 

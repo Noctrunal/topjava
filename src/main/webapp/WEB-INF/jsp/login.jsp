@@ -10,7 +10,9 @@
     <div class="container">
         <div class="navbar-header navbar-brand"><fmt:message key="app.title"/></div>
         <div class="navbar-collapse collapse">
-            <form:form class="navbar-form navbar-right" role="form" action="spring_security_check" method="post">
+            <ul class="nav navbar-nav navbar-right">
+              <li>
+            <form:form class="navbar-form" role="form" action="spring_security_check" method="post">
                 <div class="form-group">
                     <input type="text" placeholder="Email" class="form-control" name='username'>
                 </div>
@@ -19,6 +21,9 @@
                 </div>
                 <button type="submit" class="btn btn-success"><fmt:message key="app.login"/></button>
             </form:form>
+                </li>
+                <jsp:include page="fragments/changeLocale.jsp"/>
+             </ul>
         </div>
     </div>
 </div>
@@ -78,5 +83,7 @@
     </div>
 </div>
 <jsp:include page="fragments/footer.jsp"/>
+<script type="text/javascript" src="webjars/jquery/2.2.3/jquery.min.js"></script>
+<script type="text/javascript" src="webjars/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 </body>
 </html>

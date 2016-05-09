@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.*;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.to.UserTo;
 import ru.javawebinar.topjava.util.UserUtil;
+import ru.javawebinar.topjava.util.exception.ErrorInfo;
 import ru.javawebinar.topjava.web.ExceptionInfoHandler;
 
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import java.util.List;
 
 /**
@@ -36,12 +38,11 @@ public class AdminAjaxController extends AbstractUserController implements Excep
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<String> createOrUpdate(@Valid UserTo userTo, BindingResult result) {
+    public ResponseEntity<Object> createOrUpdate(@Valid UserTo userTo, BindingResult result) {
         if (result.hasErrors()) {
-            // TODO change to exception handler
             StringBuilder sb = new StringBuilder();
             result.getFieldErrors().forEach(fe -> sb.append(fe.getField()).append(" ").append(fe.getDefaultMessage()).append("<br>"));
-            return new ResponseEntity<>(sb.toString(), HttpStatus.UNPROCESSABLE_ENTITY);
+            return new ResponseEntity<>(new ErrorInfo("/ajax/admin/users", new ValidationException(sb.toString())), HttpStatus.UNPROCESSABLE_ENTITY);
         }
         if (userTo.getId() == 0) {
             super.create(UserUtil.createFromTo(userTo));

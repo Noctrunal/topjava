@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.*;
 import ru.javawebinar.topjava.model.UserMeal;
 import ru.javawebinar.topjava.to.UserMealTo;
 import ru.javawebinar.topjava.to.UserMealWithExceed;
+import ru.javawebinar.topjava.util.exception.ErrorInfo;
 import ru.javawebinar.topjava.web.ExceptionInfoHandler;
 
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -41,12 +43,11 @@ public class UserMealAjaxController extends AbstractUserMealController implement
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<String> updateOrCreate(@Valid UserMealTo mealTo, BindingResult result) {
+    public ResponseEntity<Object> updateOrCreate(@Valid UserMealTo mealTo, BindingResult result) {
         if (result.hasErrors()) {
-            // TODO change to exception handler
             StringBuilder sb = new StringBuilder();
             result.getFieldErrors().forEach(fe -> sb.append(fe.getField()).append(" ").append(fe.getDefaultMessage()).append("<br>"));
-            return new ResponseEntity<>(sb.toString(), HttpStatus.UNPROCESSABLE_ENTITY);
+            return new ResponseEntity<>(new ErrorInfo("/ajax/profile/meals", new ValidationException(sb.toString())), HttpStatus.UNPROCESSABLE_ENTITY);
         }
         if (mealTo.getId() == 0) {
             super.create(createFromTo(mealTo));
