@@ -9,10 +9,13 @@
     <http pattern="/resources/**" security="none"/>
     <http pattern="/webjars/**" security="none"/>
 
-    <http pattern="/rest/**" use-expressions="true" name="restSecurityFilterChain" create-session="stateless">
-        <http-basic/>
+    <http pattern="/rest/authentication/login" security="none"/>
+
+    <http pattern="/rest/**" use-expressions="true" name="restSecurityFilterChain" entry-point-ref="entryPointUnauthorizedHandler" create-session="stateless">
+        <intercept-url pattern="/rest/**" method="OPTIONS" access="permitAll"/>
         <intercept-url pattern="/rest/admin/**" access="hasRole('ROLE_ADMIN')"/>
         <intercept-url pattern="/**" access="isAuthenticated()" requires-channel="https"/>
+        <custom-filter before="FORM_LOGIN_FILTER" ref="authenticationTokenFilter"/>
         <csrf disabled="true"/>
     </http>
 
@@ -31,7 +34,15 @@
 
     <beans:bean class="ru.javawebinar.topjava.util.PasswordUtil" id="passwordEncoder" factory-method="getPasswordEncoder"/>
 
-    <authentication-manager>
+    <beans:bean class="ru.javawebinar.topjava.util.TokenUtil" id="tokenUtil"/>
+
+    <beans:bean class="ru.javawebinar.topjava.web.EntryPointUnauthorizedHandler" id="entryPointUnauthorizedHandler"/>
+
+    <beans:bean class="ru.javawebinar.topjava.web.filter.AuthenticationTokenFilter" id="authenticationTokenFilter">
+        <beans:property name="authenticationManager" ref="authenticationManager"/>
+    </beans:bean>
+
+    <authentication-manager alias="authenticationManager">
         <authentication-provider user-service-ref="userService">
             <password-encoder ref="passwordEncoder"/>
         </authentication-provider>

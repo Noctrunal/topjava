@@ -37,6 +37,15 @@
     </servlet-mapping>
 
     <filter>
+        <filter-name>corsFilter</filter-name>
+        <filter-class>ru.javawebinar.topjava.web.filter.CorsFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>corsFilter</filter-name>
+        <url-pattern>/rest/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
         <filter-name>encodingFilter</filter-name>
         <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
         <init-param>
