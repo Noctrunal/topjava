@@ -20,6 +20,7 @@ import javax.validation.ValidationException;
  * Date: 23.09.2014
  */
 @ControllerAdvice(annotations = RestController.class)
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class ExceptionInfoHandler {
     Logger LOG = LoggerFactory.getLogger(ExceptionInfoHandler.class);
 

@@ -11,7 +11,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.core.userdetails.UserDetails;
 import ru.javawebinar.topjava.LoggedUser;
 import ru.javawebinar.topjava.model.Role;
-import ru.javawebinar.topjava.util.exception.TokenNotFoundException;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -70,11 +69,13 @@ public class TokenUtil {
     }
 
     public String getToken(String header) {
-        if (header == null || !header.startsWith("Bearer ")) {
-            throw new TokenNotFoundException("No token found in request headers");
+        String token;
+        try {
+            token = header.substring(7);
+        } catch (Exception e) {
+            token = null;
         }
-
-        return header.substring(7);
+        return token;
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {

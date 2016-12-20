@@ -1,12 +1,12 @@
 package ru.javawebinar.topjava.web.user;
 
 import org.junit.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import ru.javawebinar.topjava.TestUtil;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.to.UserTo;
 import ru.javawebinar.topjava.util.UserUtil;
-import ru.javawebinar.topjava.web.AbstractControllerTest;
+import ru.javawebinar.topjava.web.AbstractRestControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
 import java.util.Collections;
@@ -18,15 +18,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.javawebinar.topjava.UserTestData.*;
 import static ru.javawebinar.topjava.web.user.ProfileRestController.REST_URL;
 
-public class ProfileRestControllerTest extends AbstractControllerTest {
+public class ProfileRestControllerTest extends AbstractRestControllerTest {
 
     @Test
     public void testGet() throws Exception {
-        TestUtil.print(mockMvc.perform(get(REST_URL).secure(true)
-                .with(TestUtil.userHttpBasic(USER)))
+        mockMvc.perform(get(REST_URL).secure(true)
+                .header(HttpHeaders.AUTHORIZATION, token(USER)))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MATCHER.contentMatcher(USER)));
+                .andExpect(MATCHER.contentMatcher(USER));
     }
 
     @Test
@@ -38,7 +39,7 @@ public class ProfileRestControllerTest extends AbstractControllerTest {
     @Test
     public void testDelete() throws Exception {
         mockMvc.perform(delete(REST_URL).secure(true)
-                .with(TestUtil.userHttpBasic(USER)))
+                .header(HttpHeaders.AUTHORIZATION, token(USER)))
                 .andExpect(status().isOk());
         MATCHER.assertCollectionEquals(Collections.singletonList(ADMIN), userService.getAll());
     }
@@ -48,7 +49,7 @@ public class ProfileRestControllerTest extends AbstractControllerTest {
         UserTo updatedTo = new UserTo(0, "newName", "newemail@ya.ru", "newPassword", 1500);
 
         mockMvc.perform(put(REST_URL).contentType(MediaType.APPLICATION_JSON).secure(true)
-                .with(TestUtil.userHttpBasic(USER))
+                .header(HttpHeaders.AUTHORIZATION, token(USER))
                 .content(JsonUtil.writeValue(updatedTo)))
                 .andDo(print())
                 .andExpect(status().isOk());
